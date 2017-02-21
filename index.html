@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="ajax.js"></script>
+	    <script src="jquery.js"></script>
+	</head>
+	<style>
+		table{
+	     width:500px;
+	     margin:0 auto;
+	     text-align:center;
+	    }
+	   td,tr{
+	   	 
+	   	 border:1px solid #000;
+	   } 
+	   .add{
+	      width:498px;
+	      text-align: center;
+	      margin:0 auto;
+	      display: block;
+	      border:1px solid #000;
+	      border-top:0;
+	      text-decoration: none;
+	      font-size: 20px;
+	      cursor: pointer;
+	   }
+	</style>
+	</style>
+	<body>
+		<table border="1" cellspacing="0">
+			<thead>
+			<tr>
+				 <td>姓名</td>
+	             <td>年龄</td>
+	             <td>性别</td>
+	             <td>籍贯</td>
+	             <td>操作</td>
+			</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+		<div class="add">+</div>
+	</body>
+</html>
+  <script>
+  	var tbody=document.querySelector("tbody");
+  	window.onload=function(){
+  		ajax({
+  			url:"index.php",
+  			dataType:"json",
+  			success:function(e){
+  				var str="";
+  				for(var i=0;i<e.length;i++){
+  					str+="<tr id="+e[i].id+">";                   //设置id
+  					str+="<td attr='name'>"+e[i].name+"</td>";     
+  					str+="<td attr='age'>"+e[i].age+"</td>";
+  					str+="<td attr='sex'>"+e[i].sex+"</td>";
+  					str+="<td attr='home'>"+e[i].home+"</td>";
+  					str+="<td><a href='' class='del'>删除</a></td>";
+  					str+="</tr>";
+  				}
+  				tbody.innerHTML=str;
+  			}
+  		})
+  		
+  		
+  		
+  		
+  	//添加
+  		var add=document.querySelector(".add");
+  		add.onclick=function(){
+  			ajax({
+  				url:"addindex.php",
+  				success:function(e){
+  					var tr=document.createElement("tr");
+  					tr.id=e;
+  					var str="";
+  					str+="<td attr='name'></td>";
+					str+="<td attr='age'></td>";
+					str+="<td attr='sex'></td>";
+					str+="<td attr='home'></td>";
+					str+="<td><a href='' class='del'>删除</a></td>";								
+					tr.innerHTML=str;
+					tbody.append(tr);
+  				}
+  			})
+  		}
+  		
+  		
+    //删除
+    tbody.onclick=function(e){                         //事件委派，委派给tbody
+		var ev=e||window.event;
+		var obj=ev.target||ev.srcElement;
+		if(obj.className=="del"){
+			var parent=obj.parentNode.parentNode;
+			var id=parent.id;
+			ajax({
+				url:"delindex.php",
+				data:{"id":id},
+				success:function(obj){
+					if(obj=="ok"){
+						tbody.removeChild(parent);
+					}
+				} 
+			})
+		}
+  	}
+  	
+  	
+  	
+  	//编辑
+//	tbody.ondblclick=function(e){
+//		var ev=e||window.event;
+//		var obj=ev.target||ev.srcElement;
+//		if(obj.nodeName=="TD"&&obj.className!="del"){
+//			var value=obj.innerHTML;
+//			obj.innerHTML="";
+//			var input=document.createElement("input");
+//			input.style.width="50px";
+//			input.value=value;
+//			obj.append(input);
+//			input.focus();
+//			input.onblur=function(){
+//					var newvalue=input.value;
+//					if(newvalue==""&&newvalue==value){
+//						obj.removeChild(input);
+//						input=null;
+//						obj.innerHTML=value;
+//					}else{
+//						var parentid=obj.parentNode.id;
+//						var name=obj.className;
+//						ajax({
+//							url:"bj.php",
+//							data:{"id":parentid,"name":name,"value":newvalue},
+//							success:function(){
+//								obj.innerHTML=newvalue;
+//							}
+//						})
+//						
+//					}
+//				}
+//		    }
+//	    } 
+//	
+  	    //编辑
+	    $("tbody").delegate("td:not(.del)","dblclick",function(){
+	    	var that=$(this);                                            
+            var oldvalue=$(this).html();
+	    	$(this).html("");                         
+	    	var input=$("<input type='text' value="+oldvalue+">").appendTo($(this));      //将原来的值给了input
+	    	input.focus();                               
+            input.blur(function(){
+            	var newvalue=$(this).val();        
+	    		if(oldvalue==newvalue){
+	    			that.html(newvalue);
+	    			input.remove();
+                }else{              
+                	that.html(newvalue);
+                	var attr=that.attr("attr");
+	    			var id=that.parent().attr("id");
+	    			$.ajax({
+	    				url:"bj.php",
+	    				data:{id:id,value:newvalue,attr:attr},
+	    				success:function(e){
+	    					if(e=="ok"){
+	    						input.remove();
+	    					}
+	    				}
+	    			})
+	    		}
+	    	})
+	    })
+  	}
+  </script>
